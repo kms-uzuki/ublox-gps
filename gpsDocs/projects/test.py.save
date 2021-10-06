@@ -1,0 +1,21 @@
+import time
+import serial 
+
+ser = serial.Serial(port='/dev/ttyS0', baudrate=115200, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS,timeout=0.1)
+
+y = time.perf_counter()
+count = 0
+while time.perf_counter() - y < 10:
+	print(f"{ser.readline()}\n{round(time.perf_counter() - y, 2)}")
+	if b"GNGLL" in ser.readline():
+		print("1")
+#	buf = []
+	
+#	x = ser.readline()
+#	if x[:6] == b'$GNRMC':
+	count += 1
+#		buf = x.decode('ascii').split(',')
+#		buf.append(round(time.perf_counter() - y, 2))
+#		print(buf)
+
+print(count)
