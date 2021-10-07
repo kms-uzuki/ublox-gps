@@ -1,0 +1,59 @@
+import time, sys
+import serial, struct
+
+ser = serial.Serial(port='/dev/ttyS0', baudrate=9600, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS,timeout=1)
+
+
+nRST     = b"\xB5\x62\x06\x04\x04\x04\x04\x00\xFF\xFF\x02\x00\x0E\x61"
+baudrate = b"\xB5\x62\x06\x00\x14\x00\x01\x00\x00\x00\xD0\x08\x00\x00\x00\xC2\x01\x00\x07\x00\x03\x00\x00\x00\x00\x00\xC0\x7E"
+update   = b"\xB5\x62\x06\x08\x06\x00\x64\x00\x01\x00\x01\x00\x7A\x12" # 10Hz
+
+y = time.perf_counter()
+count = 0
+
+#print(ser.is_open, ser.port, ser.baudrate, ser.writable(), end='\n')
+#print(f"{nRST}\n{bytes(nRST)}")
+
+
+def fletchCSum(mes):
+    sum1 = 0
+    sum2 = 0
+    key = 'B' * len(mes[2:])
+    unpacked = struct.unpack(key, mes[2:])
+    for i in unpacked:
+        sum1 = (sum1 + i) % 256
+        sum2 = (sum2 + sum1) % 256
+    csum = ((sum2 << 8) | sum1)
+    print(f"{sum1}, {sum2}, {(sum1 << 8) | sum2}")
+    print(f"{hex((sum2 << 8) | sum1)}") 
+    zed = struct.pack("H", csum)
+
+    return(mes + zed)
+    
+
+def X():
+	while 1:
+		try:
+#	print(f"{ser.readline()}\n{round(time.perf_counter() - y, 2)}")
+#	if "GNVTG" in ser.readline():
+#		print("1")
+#	buf = []
+	
+			x = ser.readline()
+			if x[3:6] == b'RMC':
+				print("nice")
+#			buf = x.decode('ascii').split(',')
+#			buf.append(round(time.perf_counter() - y, 2))
+#			print(buf)
+
+			else: 
+				print("wow")
+		except KeyboardInterrupt:
+			print("exiting")
+			sys.exit()
+
+if __name__ == "__main__":
+	dGA = fletchCsum(b"\xB5\x62\x06\x01\x03\x00\xF0\x00\x00")
+
+	ser.write(dGA); ser.write(dLL); ser.write(dSA); ser.write(dSV); ser.write(dTG)
+	X()
