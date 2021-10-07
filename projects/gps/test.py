@@ -9,15 +9,9 @@ os.system("sudo echo gpio | sudo tee /sys/class/leds/led0/trigger > /dev/null 2>
 
 
 
-nRST     = b"\xB5\x62\x06\x04\x04\x04\x04\x00\xFF\xFF\x02\x00\x0E\x61"
-baudrate = b"\xB5\x62\x06\x00\x14\x00\x01\x00\x00\x00\xD0\x08\x00\x00\x00\xC2\x01\x00\x07\x00\x03\x00\x00\x00\x00\x00\xC0\x7E"
-update   = b"\xB5\x62\x06\x08\x06\x00\x64\x00\x01\x00\x01\x00\x7A\x12" # 10Hz
-
-#dGA = fletchCSum(b"\xB5\x62\x06\x01\x03\x00\xF0\x00\x00")
-#dLL = fletchCSum(b"\xB5\x62\x06\x01\x03\x00\xF0\x01\x00")
-#dSA = fletchCSum(b"\xB5\x62\x06\x01\x03\x00\xF0\x02\x00")
-#dSV = fletchCSum(b"\xB5\x62\x06\x01\x03\x00\xF0\x03\x00")
-#dTG = fletchCSum(b"\xB5\x62\x06\x01\x03\x00\xF0\x05\x00")
+#nRST     = b"\xB5\x62\x06\x04\x04\x04\x04\x00\xFF\xFF\x02\x00\x0E\x61"
+#baudrate = b"\xB5\x62\x06\x00\x14\x00\x01\x00\x00\x00\xD0\x08\x00\x00\x00\xC2\x01\x00\x07\x00\x03\x00\x00\x00\x00\x00\xC0\x7E"
+#update   = b"\xB5\x62\x06\x08\x06\x00\x64\x00\x01\x00\x01\x00\x7A\x12" # 10Hz
 
 
 fname = "/home/pi/projects/data/{}.csv".format(time.strftime('%Y%m%d-%H%M%S'))
@@ -57,38 +51,31 @@ def fletchCSum(mes):
 def X(filename):
 	time.sleep(1)
 	zed = time.time()
+	ledBit = 1
 	with open(filename, 'w') as csvfile:
 		writer = csv.writer(csvfile)
 		while 1:
 			try:
-#				y = threading.Thread(target=dataLED, args=(1,None,),daemon=True)
-#				y.start()
-#		print(f"{ser.readline()}\n{round(time.perf_counter() - y, 2)}")
-#		if "GNVTG" in ser.readline():
-#			print("1")
-#		buf = []
-		
+				os.system(f"echo {ledBit} | sudo tee /sys/class/leds/led0/brightness > /dev/null 2>&1")
+				ledBit = !ledBit
+				
 				x = ser.readline()
 				if x[:6] == b'$GNRMC':
 					print(f"{time.time() - zed}\n{x}")
 					buf = x.decode("utf-8").split(',')
 					writer.writerow(buf)
-#				buf.append(round(time.perf_counter() - y, 2))
-				
-	
-	#			else: 
-	#				print(f"wow\n{x}")
-#				y.join()
+				else:
+					print(x)
+					
 			except KeyboardInterrupt:
+				
 				os.system("sudo echo cpu0 | sudo tee /sys/class/leds/led0/trigger")
 
-				print("exiting")
+				print("\nexiting")
 				sys.exit()
 
 if __name__ == "__main__":
 	print("Initializing...")
-
-	z = threading.Thread(target=dataLED, args=(10,0.5),daemon=True)
 	z.start()
 #	os.system("sudo echo gpio | sudo tee /sys/class/leds/led0/trigger")
 
